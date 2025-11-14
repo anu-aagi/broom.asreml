@@ -6,6 +6,48 @@
 generics::tidy
 
 
+clean_asreml_coef <- function(coef) {
+  tms <- attr(coef, "terms") # assume that terms appears in this order
+  rw <- rownames(coef)
+  group <- rw
+  i <- 1
+  level <- rep(NA, length(rw))
+  for(igrp in 1:nrow(tms)) {
+    nm <- tms$tname[igrp]
+    if(has_interaction(nm)) {
+      nms <- strsplit(nm, ":")[[1]]
+    } else {
+      nms <- nm
+    }
+    ntrms <- length(nms)
+    ngrp <- tms$n[igrp]
+    index <- seq(i, i + ngrp - 1)
+    # is it a group?
+    pattern <- paste0("^", gsub("\\)", "\\\\)", gsub("\\(", "\\\\(", nms)), "_")
+    levels <- strsplit(rw[index], ":")
+    group[index] <- nm
+    clevels <- lapply(1:ntrms, function(j) {
+      jlevels <- sapply(levels, function(x) x[j])
+      if(all(grepl(pattern[j], jlevels))) {
+        gsub(pattern[j], "", jlevels)
+      } else {
+        rep("", length(index))
+      }
+    })
+    level[index] <- sapply(1:length(clevels[[1]]), function(k) {
+        paste0(sapply(clevels, function(a) a[k]),collapse = ":")
+      })
+    i <- i + ngrp
+  }
+  rownames(coef) <- NULL
+  level[level==""] <- NA
+  list(coef = coef[, "effect", drop = TRUE],
+       term = rw,
+       group = group,
+       level = level)
+}
+
+
 #' Tidy an asreml object
 #'
 #' Get the model components.
@@ -25,17 +67,17 @@ tidy.asreml <- function(x, type = c("all", "fixed", "random", "vcomp", "varcomp"
            dplyr::bind_rows(list(fixed = f, random = r, vcomp = v), .id = "type")
          },
          "fixed" = {
-          fr <- coef(x)$fixed
-          rw <- rownames(fr)
-          rownames(fr) <- NULL
-          tibble::tibble(term = rw, estimate = fr[, "effect", drop = TRUE],
+          fr <- x$coefficients$fixed
+          cc <- clean_asreml_coef(fr)
+          tibble::tibble(term = cc$term, group = cc$group, level = cc$level,
+                         estimate = cc$coef,
                          std.error = sqrt(x$vcoeff$fixed * x$sigma2))
          },
          "random" = {
-           rr <- coef(x)$random
-           rw <- rownames(rr)
-           rownames(rr) <- NULL
-           tibble::tibble(term = rw, estimate = rr[, "effect", drop = TRUE],
+           rr <- x$coefficients$random
+           cc <- clean_asreml_coef(rr)
+           tibble::tibble(term = cc$term, group = cc$group, level = cc$level,
+                          estimate = cc$coef,
                           std.error = sqrt(x$vcoeff$random * x$sigma2))
          },
          "vcomp" = {
