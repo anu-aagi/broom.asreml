@@ -53,8 +53,8 @@ update_fix <- function (x, data, ...) {
     newcall$step.size <- tempcall$step.size
     tempcall$step.size <- NULL
   }
-  else if (asreml.options()$update.step.size != 0.316) {
-    newcall$step.size <- asreml.options()$update.step.size
+  else if (asreml::asreml.options()$update.step.size != 0.316) {
+    newcall$step.size <- asreml::asreml.options()$update.step.size
   }
   if (length(tempcall)) {
     what <- !is.na(match(names(tempcall), names(newcall)))
