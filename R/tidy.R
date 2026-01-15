@@ -54,10 +54,9 @@ clean_asreml_coef <- function(coef) {
 #'
 #' @param x An asreml object.
 #' @param type The type of summary to get.
-#' @param ... Extra arguments parsed into `asreml::wald` function.
 #'
 #' @export
-tidy.asreml <- function(x, type = c("all", "fixed", "random", "vcomp", "varcomp", "wald"), ...) {
+tidy.asreml <- function(x, type = c("all", "fixed", "random", "vcomp", "varcomp")) {
   type <- match.arg(type)
   switch(type,
          "all" = {
@@ -91,18 +90,20 @@ tidy.asreml <- function(x, type = c("all", "fixed", "random", "vcomp", "varcomp"
                           constraint = vr[, "bound", drop = TRUE])
 
          },
-         "varcomp" = tidy(x, "vcomp"),
-         "wald" = {
-           res <- asreml::wald.asreml(x, ...)
-           rw <- rownames(res)
-           rownames(res) <- NULL
-           tibble::tibble(term = rw,
-                          df = res[, "Df", drop = TRUE],
-                          sumsq = res[, "Sum of Sq", drop = TRUE],
-                          statistic = res[, "Wald statistic", drop = TRUE],
-                          p.value = res[, "Pr(Chisq)", drop = TRUE])
-
-         })
+         "varcomp" = tidy(x, "vcomp")
+         ## omit Wald test since it relies on asreml call
+         # "wald" = {
+         #   res <- asreml::wald.asreml(x, ...)
+         #   rw <- rownames(res)
+         #   rownames(res) <- NULL
+         #   tibble::tibble(term = rw,
+         #                  df = res[, "Df", drop = TRUE],
+         #                  sumsq = res[, "Sum of Sq", drop = TRUE],
+         #                  statistic = res[, "Wald statistic", drop = TRUE],
+         #                  p.value = res[, "Pr(Chisq)", drop = TRUE])
+         #
+         # }
+         )
 }
 
 

@@ -4,14 +4,12 @@
 \alias{tidy.asreml}
 \title{Tidy an asreml object}
 \usage{
-\method{tidy}{asreml}(x, type = c("all", "fixed", "random", "vcomp", "varcomp", "wald"), ...)
+\method{tidy}{asreml}(x, type = c("all", "fixed", "random", "vcomp", "varcomp"))
 }
 \arguments{
 \item{x}{An asreml object.}
 
 \item{type}{The type of summary to get.}
-
-\item{...}{Extra arguments parsed into \code{asreml::wald} function.}
 }
 \description{
 Get the model components.
